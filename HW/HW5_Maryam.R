@@ -1,100 +1,101 @@
-######Vectors
-#### Q1-Create a vector w/ c() 
-my_vector <- c(1,2,3,4,5)
-my_vector
-### Q2-Create a vector w/ rep()
-v<-rep(c(1,2),3)
-v
-### Q3-Create a vector w/ seq()
-x <- seq(from=5, to= 15,by=2)
-x
-### Q4-Create a vector w/ Random numbers
-set.seed(123)
-random_vector<- rnorm(10, mean=0, sd = 1)
-random_vector
-### Q5 - Create empty vectors
-x <-c()
-x
-class(x)
-### Q6 - Naming vectors components 
-goods<- c(10,20,30)
-goods
-names(goods)<-c("First", "Second", "Third")
+### Q1-Importing Data
+df <-read.csv("data.csv")
 
-goods
-goods["First"]
-### Q7- Filtering vectors 
-x <-c(1,3,5,7,9)
-x
-n <- x[x>4]
-n
-### Q8 - Sum & Product of vector components
-x<-c(2,4,6,8)
-x
-sum(x)
-prod(x)
-### Q9-Vectorized Operations
-a<-c(1,2,3)
-a
-b<-c(4,5,6)
-b
-# Element-wise-sum
-a+b
-# Element-wise-difference
-a-b
-# Element-wise-multiplication
-a*b
-### Q10-Vector Correlation 
-x<-c(1,2,3,4,5)
-y<-c(5,4,3,2,1)
+### Q2-Exploring Data
+summary(df)
 
-#Computing correlation
-cor.test(x,y)
-####Matrices and Arrarys
-##Q11-Creating matrices 
-x = matrix(c(1,2,3,4,5,6,7,8,9),nrow=3, ncol = 3)
-x
-## Q12- Naming Matrices Rows & Cols
-x = matrix(c(1,2,3,4,5,6,7,8,9),nrow=3, ncol = 3,
-           byrow = TRUE, dimnames=list(c("Row1", "Row2", "Row3"),
-                               c("Col1", "Col2", "Col3")) )
-x### Q13-Indexing Matrices
-# Extracting all elements of the 2nd row
-x[2,]
-### Q14-Adding & Deleting Rows/Cols in Matrices 
-## Adding
-y= matrix(c(10,11,12), nrow = 3, ncol = 1, byrow=TRUE)
-colnames(y)=c("Col4")
-xy = cbind(x,y)
-xy
-##Deleting the row
-xy <-xy[-2, ]
-xy  
-###Q15-Applying Function to Matrices 
-x
-apply(x, 2, sum)  
-###Q16-Adding & Multiplying Matrices
-A <- matrix(1:4, nrow = 2)
-A  
-B <- matrix(rep(2,4), nrow = 2)
-B
-##Adding Matrices
-C <- A + B
-C
-##Multiplying Matrices
-C <- A %*% B
-C
-###Q17 - Missing Values in vectors
-z <- c(1, NA, 3, NA, 5)
-z
-avg <- mean(z, na.rm = TRUE)
-z[is.na(z)]<-avg
-z
-###Q18-Filtering Matrices 
-M <- matrix(1:9, nrow = 3)
-new_M <-M[M > 5]
-new_M
-###Q19-Editing elements in Matrices 
-M
-M[M>=5]<- 0 
-M
+head(df)
+tail(df)
+
+ncol(df)
+nrow(df)
+
+### Q3-Basic Operations w/ DataFrame
+# Extracting the col "Age
+df[, c("Age")]
+
+### Q4- Filtering a Df
+# Filtering for the age 25 and above
+df$Age >= 25
+df[df$Age >= 25 , ]
+
+### Q5 - Generate Statistical Indicators
+# Calculating mean Income
+mean(df$Income)
+
+### Q6 - Descriptive Statistics with the psych package
+install.packages("psych")
+library(psych)
+describe(df)
+## getting a descriptive stats for HoursWorkedPerWeek
+describe(df$HoursWorkedPerWeek)
+
+###Q7 - Determining the Skewness and Kurtosis
+library(e1071)
+require(e1071)
+## Skewness 
+skewness(df$Weight_kg)
+hist(df$Weight_kg)
+## Kurtosis
+kurtosis(df$Weight_kg)
+
+### Q8 - Data Transformation
+# Transforming Income col into logscale 
+hist(df$Income) # intial visualization
+library(dplyr)
+df <- mutate(df, logIncome = log(df$Income))
+hist(df$logIncome, main = "Histogram of LogIncome",
+     xlab = "Log-Tranformed Income")
+
+### Q9 - Recoding Continuous Variables
+# Recoding Job satisfication
+names(df)
+unique(df$JobSatisfaction)
+class(df$JobSatisfaction)
+# changing to numeric
+df$JobSatisfaction <- as.numeric(df$JobSatisfaction)
+# recoding to three categories 
+unique(df$JobSatisfaction)
+df$JobSatisfaction <- cut(df$JobSatisfaction,
+                                     breaks = c(0, 3, 7, 10),
+                                     labels = c("Low", "Medium", "High"),
+                                     include.lowest = TRUE)
+head(df)
+
+### Q10 - Sorting Data Frame
+# Sorting age col into descending order
+library(dplyr)
+View(df)
+df_sorted <- df[order(df$Age , decreasing = TRUE),]
+View(df_sorted)
+### Q11 - USing filter()
+# filter for ind. working more than 40hr/week & live in US
+head(df)
+wrk_40plus <- filter(df, HoursWorkedPerWeek > 40, 
+                     Country == "USA")
+head(wrk_40plus)
+View(wrk_40plus)
+
+### Q12 - Using arrange()
+# arrange df based on income in ascending order
+Income_asc <- df %>% arrange(Income)
+View(Income_asc)
+
+### Q13-Pick Variables by theri Names(select())
+#selecting col ID, Age, & Gender
+df_selected<- select(df, ID,Age, Gender)
+df_selected
+
+### Q14 - Create new variable w/ existing variable 
+# creating a bmi variable
+df2 <- df %>%
+  mutate(BMI  =  Weight_kg / (Height_cm)^2)
+View(df2)
+
+### Label Encoding 
+#encoding gender, Female = 0 ; Male = 1
+levels = c("Female","Male")
+labels = c(0, 1)
+df$Gender <- factor(df$Gender, levels = levels, labels = labels)
+View(df)
+head(df)
